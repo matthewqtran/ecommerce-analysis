@@ -1,6 +1,0 @@
-import pandas as pd
-df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv")
-
-#Names of columns within the csv
-df.columns
-

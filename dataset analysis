@@ -1,0 +1,230 @@
+import pandas as pd
+df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv")
+
+#Names of columns within the csv
+df.columns
+
+
+
+#Provides the shape of the dataset (rows, columns)
+df.shape
+
+
+
+#States the data types within the csv
+df.dtypes
+
+
+
+#Displays first 5 rows of the csv
+df.head(5)
+
+
+
+df.info()
+
+
+
+#This line of code prints line by line how many missing values each column in the csv has.
+print("Missing values per columns:\n", df.isna().sum().sort_values(ascending=False).head(13))
+
+#Counts within the csv how many rows of data have duplicated values.
+print("\nDuplicate rows:", df.duplicated().sum())
+
+#transformed column names into snakecase
+df.columns = (df.columns
+              .str.strip()
+              .str.lower()
+              .str.replace(r"[^\w]+","_", regex=True)
+              .str.strip("_")
+)
+
+df.columns
+
+
+
+#strips whitespace from string columns
+string_cols = df.select_dtypes(include=['object']).columns #selects all columns with an object in them
+for col in string_cols:
+  df[col] = df[col].str.strip() #takes the columns with objects in them and strips them of the whitespace
+df.columns
+
+
+
+#convert dtypes
+#converts date to datetime
+date_cols = ['customer_since']
+
+for col in date_cols:
+  df[col] = pd.to_datetime(df[col], errors='coerce') #converts to datetime
+  print(f"Converted '{col}' to datetime.") #prints confirmation message
+
+
+#converts price to float
+price_cols = ['avg_order_value']
+
+for col in price_cols:
+  df[col] = pd.to_numeric(df[col], errors='coerce') #converts to numeric
+  print(f"Converted '{col}' to float.") #prints confirmation message
+
+
+
+#fill in mising values (choose to drop or replace with median)
+# path = "synthetic_ecommerce_churn_dataset.csv"  # <-- ensure the file exists here
+data_file = "synthetic_ecommerce_churn_dataset.csv"  # <-- ensure the file exists here
+# Read in synthetic_ecommerce_churn_dataset.csv data file
+df = pd.read_csv(data_file)
+# Find out how many rows have values
+num_rows_with_values = df.dropna(how='all').shape[0]
+# Read in synthetic_ecommerce_churn_dataset.csv data file again but only up to the num_rows_with_values
+df = pd.read_csv(data_file, encoding="utf-8", nrows=num_rows_with_values)
+# Fill in the missing fields with a median value
+df = df.fillna(df.median(numeric_only=True))
+
+
+
+#check and remove duplicate rows (we don't have any)
+print("Are there any duplicate rows? ")
+dup_result = df.duplicated().any()
+if dup_result:
+  df = df.drop_duplicates()
+else:
+  print("No duplicate rows")
+
+
+
+#add a sanity check using assert
+# assert only on numeric columns
+assert df['age'].min() >= 0
+assert df['avg_order_value'].min() >= 0
+assert df['total_orders'].min() >= 0
+assert df['last_purchase'].min() >= 0
+assert df['is_fraudulent'].min() >= 0
+assert df['email_open_rate'].min() >= 0
+assert df['loyalty_score'].min() >= 0
+assert df['churn_risk'].min() >= 0
+
+
+
+#save data as clean_data.csv
+df.to_csv("clean_data.csv", index=False)
+
+
+
+#rerun df.describe() to see new statistical summary
+df.describe()
+
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv")
+df.plot()
+plt.show()
+
+
+
+import plotly.express as px# imports plotly
+import pandas as pd #imports pandas
+from google.colab import drive
+
+df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv")#assigns the data from teh csv file to a variable
+
+filtered_df = df[df['is_fraudulent'] == 0]#removes any fraudulent orders from the data
+
+fig = px.histogram(filtered_df,x ="age", y="loyalty_score", color = "gender",pattern_shape="gender", pattern_shape_sequence=[".", "x", "+"], title = "What age has a higher loyalty score?")#creates the histogram for question 3.1
+fig1 = px.bar(df,x ="age", y="is_fraudulent",color ="gender", pattern_shape="gender", pattern_shape_sequence=[".", "x", "+"], title = "What age is more fraudulent?")#creates the bar graph for question 3.2
+
+fig.show()#shows the histogram
+fig1.show()#shows the bar graph
+
+
+
+import pandas as pd #Imports pandas
+import seaborn as sns #Imports seaborn
+import plotly.express as px #Imports plotly express
+import matplotlib.pyplot as plt #Imports matplotlib
+
+#Reads the file "synthetic_ecommerce_churn_dataset" and assigns it to a variable
+df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv")
+
+#sns.kdeplot(data = df, y = "email_open_rate", x = "avg_order_value")
+
+sns.jointplot(data=df, x="email_open_rate", y="avg_order_value",
+            kind = "reg")
+
+plt.xlabel("Email Open Rate (%)") #sets x-axis labelto Email Open Rate
+plt.ylabel("Average Order Value ($)") #sets y-axis label to Average Order Value ($)
+plt.suptitle("Email Open Rate (%) vs. Average Order Value", y=1.02) #suptitle places title on top of figure rather than inner chart. after changes height of title to 1.02 (default is 1). having chart title at 1 makes it clip with the chart.
+
+
+#check slope of regression line (used ai for this)
+#used ai to figure out how to write code for the slope of a linear regression line
+from scipy import stats
+
+reg_data = df.dropna(subset=['email_open_rate', 'avg_order_value']) #drops any missing values so a NaN error does not occur
+
+slope, intercept, r_value, p_value, std_err = stats.linregress( #calculates the regression line
+    reg_data['email_open_rate'], #x = email_open_rate
+    reg_data['avg_order_value'] #y = avg_order_value
+)
+
+print(f"The slope is: {slope}")
+plt.show()
+#conclusion: based on slope of linear regression line, there is no correlation between email_open_rate and avg_order_value (value of lrl is close enough to 0).
+
+
+
+import pandas as pd #imports pandas
+import matplotlib.pyplot as plt #imports matplotlib
+
+df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv") #reads file "synthetic_ecommerce_churn_dataset.csv" and assigns it to a variable
+
+fraud_list = df.groupby('is_fraudulent')['avg_order_value'].median() # takes median (to account for outliers) order value for fraud and valid orders.
+
+labels = ['Valid Orders', 'Fraudulent Orders'] #defines labels for the chart
+values = fraud_list.values #takes raw data from panda and stores them in an array
+colors = ['green', 'red'] #changes colors of valid orders to green and fraudulent to red
+
+plt.bar(labels, values, color=colors) #draws the bar graph using our values in the labels, values, and colors lists
+
+plt.xlabel("Order Status") #sets x-axis label to Order Status
+plt.ylabel("Median Order Value ($)") #sets y-axis label to Average Order Value($)
+plt.suptitle("Median Order Value: Valid vs. Fraudulent") #suptitle places title on top of figure rather than inner chart. needed to be done because chart title kept clipping with the numbers
+
+#used ai for this
+for i, v in enumerate(values): #goes through list of values. since enumerate gives us 2 things at the same time, we can get the index (i), and value(v). from this, we get the values of 93.22 and 90.72
+  plt.text(i, v + 5, f"${v:.2f}", ha='center', fontweight='bold') #this puts the text at the horizontal position (i), and vertical position (v + 5). +5 is so the text is slightly above the bars. text takes the value variable and rounds it to 2 decimal places. horizontal alignment is set to be centered and font is bolded to be more visible
+
+plt.show() #displays bar graph
+
+#conclusion: because the red bar is not significantly taller than the green bar, higher-value orders are not more likely to be fraudulent
+
+
+
+total_std = df['avg_order_value'].std()
+print(f"Standard Deviation of all orders: ${total_std:.2f}")
+
+
+
+import pandas as pd #Imports pandas
+import seaborn as sns #Imports seabron
+import matplotlib.pyplot as plt #Imports matplotlib
+
+#Reads the file "synthetic_ecommerce_churn_dataset" and assigns it to a variable
+df = pd.read_csv("synthetic_ecommerce_churn_dataset.csv")
+
+#Creates a bar plot with data from the csv file. Y-axis is set to column "is_fraudulent". X-axis is set to column "preferred_category".
+#Hue allows each of the elements within the column "preferred_category" to have their own color.
+sns.barplot(data = df, y = "is_fraudulent", x = "preferred_category", hue = "preferred_category")
+
+plt.xlabel("Category") #Sets the x-axis label to Category
+plt.ylabel("Fraudulent (%)")#Sets the y-axis label to Fraudulent
+plt.title("Average Percentage of Fraudulence per Category")# Sets the title of the chart
+sns.set_theme(style="darkgrid", palette="bright")# Changes the theme and display of the chart
+
+plt.savefig("Percentage of Fraud.pdf") #Saves the chart as a pdf
+plt.show() #Displays the chart
+
+#we find out that the rates of a fraudulent order in the beauty, electronics, sports, fashion, and home category are a, b, c, d, e
